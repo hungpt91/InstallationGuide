@@ -1,0 +1,162 @@
+Install ELK on Centos 7
+Requirements:
+ES: https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.4.1/elasticsearch-2.4.1.tar.gz
+Kibana: https://download.elastic.co/kibana/kibana/kibana-4.6.1-linux-x86_64.tar.gz
+Logstash: https://download.elastic.co/logstash/logstash/logstash-2.4.0.tar.gz
+Filebeat: filebeat-1.3.1-x86_64.rpm
+Java 8: /zserver/jdk1.8.0_91
+1. Create user to run ELK Stack
+adduser zelk
+tar -xvzf elasticsearch-2.4.1.tar.gz && mv elasticsearch-2.4.1 /zserver/ELK/elasticsearch
+tar -xvzf logstash-2.4.0.tar.gz && mv logstash-2.4.0 /zserver/ELK/logstash
+tar -xvzf kibana-4.6.1-linux-x86_64.tar.gz && mv kibana-4.6.1-linux-x86_64 /zserver/ELK/kibana
+chown -R zelk. /zserver/ELK
+su - zelk
+2. Install ElasticSearch
+cd /zserver/ELK/elasticsearch/
+#ES run with Java 8
+vi bin/elasticsearch
+add JAVA_HOME=/zserver/jdk1.8.0_91
+
+cd ~
+Run ES with command:
+nohup /zserver/ELK/elasticsearch/bin/elasticsearch > elasticsearch.out&
+Check:
+ps -aux |grep elasticsearch
+zelk       2345 20.7 27.7 3686612 277480 pts/0  Sl   13:44   7:48 /zserver/jdk1.8.0_91/bin/java -Xms256m -Xmx1g -Djava.awt.headless=true -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+HeapDumpOnOutOfMemoryError -XX:+DisableExplicitGC -Dfile.encoding=UTF-8 -Djna.nosys=true -Des.path.home=/zserver/ELK/elasticsearch -cp /zserver/ELK/elasticsearch/lib/elasticsearch-2.4.1.jar:/zserver/ELK/elasticsearch/lib/* org.elasticsearch.bootstrap.Elasticsearch start
+
+3. Install Logstash
+vi /zserver/ELK/logstash/logstash.conf
+
+input {
+  beats {
+    port => 5044
+  }
+}
+
+output {
+    if [type] =~ "syslog-*"
+	{
+     elasticsearch {
+       hosts => ["localhost:9200"]
+       index => "syslog-%{+YYYY.MM.dd}"
+    }}
+    else if [type] =~ "nohup-*"
+       { 
+     elasticsearch {
+       hosts => ["localhost:9200"]
+       index => "nohup-%{+YYYY.MM.dd}"
+    }}
+    else
+	{
+     elasticsearch {
+       hosts => ["localhost:9200"]
+    }}
+    stdout { codec => rubydebug }
+}
+
+Run it:
+cd ~
+nohup /zserver/ELK/logstash/bin/logstash -f /zserver/ELK/logstash/logstash.conf > logstash.out&
+Check:
+ps -aux |grep logstash
+zelk       2899 94.7 43.5 3669488 435308 pts/0  Sl   14:06  16:13 /zserver/jdk1.8.0_91/bin/java -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Djava.awt.headless=true -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+HeapDumpOnOutOfMemoryError -Xmx1g -Xss2048k -Djffi.boot.library.path=/zserver/ELK/logstash/vendor/jruby/lib/jni -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Djava.awt.headless=true -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/zserver/ELK/logstash/heapdump.hprof -Xbootclasspath/a:/zserver/ELK/logstash/vendor/jruby/lib/jruby.jar -classpath : -Djruby.home=/zserver/ELK/logstash/vendor/jruby -Djruby.lib=/zserver/ELK/logstash/vendor/jruby/lib -Djruby.script=jruby -Djruby.shell=/bin/sh org.jruby.Main --1.9 /zserver/ELK/logstash/lib/bootstrap/environment.rb logstash/runner.rb agent -f /zserver/ELK/logstash/logstash.conf
+
+4. Install Filebeat on client
+rpm -ivh filebeat-1.3.1-x86_64.rpm
+chown -R zelk /etc/filebeat/
+chown -R zelk. /var/lib/filebeat/
+vi /lib/systemd/system/filebeat.service
+
+[Unit]
+Description=filebeat
+Documentation=https://www.elastic.co/guide/en/beats/filebeat/current/index.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+user=zelk ##add user to run
+ExecStart=/usr/bin/filebeat -c /etc/filebeat/filebeat.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+Backup original config
+mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.org
+
+vi /etc/filebeat/filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - "/var/log/*.log"
+      document_type: syslog  ## index can tao
+      multiline:
+        pattern: "^\t|^[[:space:]][[:space:]]+(at|...)|^Caused by:"
+        negate: false
+        match: after
+    -
+      paths:
+        - "/home/zelk/logstash.out"
+      document_type: nohup ##ten cua index can tao
+      multiline:
+        pattern: "^\t|^[[:space:]][[:space:]]+(at|...)|^Caused by:"
+        negate: false
+        match: after
+  registry_file: /var/lib/filebeat/registry
+output:
+  logstash:
+    hosts: ["localhost:5044"]
+
+/etc/init.d/filebeat start
+Check
+ps aux |grep filebeat
+zelk       2954 12.2  6.4 304488 64024 ?        Ssl  14:07   2:30 /usr/bin/filebeat -c /etc/filebeat/filebeat.yml
+
+5. Install Kibana
+su - zelk
+cd /zserver/ELK/kibana/
+vi config/kibana.yml
+
+# Kibana is served by a back end server. This controls which port to use.
+server.port: 5601
+
+# The host to bind the server to.
+server.host: "0.0.0.0"
+
+# If you are running kibana behind a proxy, and want to mount it at a path,
+# specify that path here. The basePath can't end in a slash.
+# server.basePath: ""
+
+# The maximum payload size in bytes on incoming server requests.
+# server.maxPayloadBytes: 1048576
+
+# The Elasticsearch instance to use for all your queries.
+elasticsearch.url: "http://localhost:9200"
+
+Run it:
+nohup /zserver/ELK/kibana/bin/kibana > kibana.out&
+Check:
+ps -aux |grep kibana
+zelk       3198  4.2  1.4 1282008 14680 pts/0   Sl   14:13   0:43 /zserver/ELK/kibana/bin/../node/bin/node /zserver/ELK/kibana/bin/../src/cli
+ Finish
+ 6. Review
+Check all indices on ES:
+
+curl http://localhost:9200/_cat/indices?v
+health status index             pri rep docs.count docs.deleted store.size pri.store.size 
+yellow open   .kibana             1   1          2            0      8.2kb          8.2kb 
+yellow open   nohup-2017.02.22    5   1     919017            0    372.2mb        372.2mb 
+yellow open   syslog-2017.02.22   5   1          8            0     36.6kb         36.6kb
+
+Check:
+curl http://localhost:9200/nohup-2017.02.22
+{"nohup-2017.02.22":{"aliases":{},"mappings":{"nohup":{"properties":{"@timestamp":{"type":"date","format":"strict_date_optional_time||epoch_millis"},"@version":{"type":"string"},"beat":{"properties":{"hostname":{"type":"string"},"name":{"type":"string"}}},"count":{"type":"long"},"host":{"type":"string"},"input_type":{"type":"string"},"message":{"type":"string"},"offset":{"type":"long"},"source":{"type":"string"},"tags":{"type":"string"},"type":{"type":"string"}}}},"settings":{"index":{"creation_date":"1487747279576","number_of_shards":"5","number_of_replicas":"1","uuid":"oPvrGiYATo-dn6ryToKKrQ","version":{"created":"2040199"}}},"warmers":{}}}
+
+7. View in Kibana Dashboard
+Go to: http://hostname:5601/
+Add pattern base on index: nohup-* and syslog-*
+
+Enjoy!!!
+Kaito An
