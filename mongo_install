@@ -1,0 +1,22 @@
+rpm -Uhv http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+yum install mongodb* -y --enablerepo=epel
+vi /etc/yum.repos.d/mongodb.repo
+yum update
+yum install mongodb-org -y
+cat /etc/hosts
+yum install mongodb-org
+mongo --version
+mkdir -p /data/configdb
+mongod --configsvr --fork --logpath /var/log/mongodb.log --logappend
+mongos --configdb cache1,cache2,cache3 --fork --logpath /var/log/mongodb.log --logappend
+mkdir -p /data/db
+mongod --shardsvr --fork --logpath /var/log/mongodb.log --logappend
+netstat -tulpn | grep mongo
+mongo
+wget http://media.mongodb.org/zips.json
+mongoimport --db mydb --collection zip --file zips.json
+mongo
+chkconfig mongod on
+mongod --version
+mongo
+
