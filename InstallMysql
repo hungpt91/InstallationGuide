@@ -1,0 +1,309 @@
+##lab
+172.16.74.129 lab2
+172.16.74.130 lab3
+
+Install new version mysql from repo
+Down load from http://repo.mysql.com/
+##Mới nhất 5.7: http://repo.mysql.com//mysql57-community-release-el6-8.noarch.rpm
+wget http://repo.mysql.com/mysql-community-release-el6-4.noarch.rpm
+yum localinstall mysql-community-release-el6-*.noarch.rpm
+yum install mysql-community-server
+
+Initdata to custom datadir
+
+[root@lab2 ~]# mkdir -p /data/{mysql1,mysql1_log,mysqlmulti_log}
+[root@lab2 ~]# mysql_install_db --user=mysql --datadir=/data/mysql1
+Installing MySQL system tables...2016-06-04 20:39:26 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2016-06-04 20:39:26 1422 [Note] InnoDB: The InnoDB memory heap is disabled
+2016-06-04 20:39:26 1422 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2016-06-04 20:39:26 1422 [Note] InnoDB: Compressed tables use zlib 1.2.3
+2016-06-04 20:39:26 1422 [Note] InnoDB: Using Linux native AIO
+2016-06-04 20:39:26 1422 [Note] InnoDB: Using CPU crc32 instructions
+2016-06-04 20:39:26 1422 [Note] InnoDB: Initializing buffer pool, size = 128.0M
+2016-06-04 20:39:26 1422 [Note] InnoDB: Completed initialization of buffer pool
+2016-06-04 20:39:26 1422 [Note] InnoDB: The first specified data file ./ibdata1 did not exist: a new database to be created!
+2016-06-04 20:39:26 1422 [Note] InnoDB: Setting file ./ibdata1 size to 12 MB
+2016-06-04 20:39:26 1422 [Note] InnoDB: Database physically writes the file full: wait...
+2016-06-04 20:39:26 1422 [Note] InnoDB: Setting log file ./ib_logfile101 size to 48 MB
+2016-06-04 20:39:26 1422 [Note] InnoDB: Setting log file ./ib_logfile1 size to 48 MB
+2016-06-04 20:39:26 1422 [Note] InnoDB: Renaming log file ./ib_logfile101 to ./ib_logfile0
+2016-06-04 20:39:26 1422 [Warning] InnoDB: New log files created, LSN=45781
+2016-06-04 20:39:26 1422 [Note] InnoDB: Doublewrite buffer not found: creating new
+2016-06-04 20:39:26 1422 [Note] InnoDB: Doublewrite buffer created
+2016-06-04 20:39:26 1422 [Note] InnoDB: 128 rollback segment(s) are active.
+2016-06-04 20:39:26 1422 [Warning] InnoDB: Creating foreign key constraint system tables.
+2016-06-04 20:39:26 1422 [Note] InnoDB: Foreign key constraint system tables created
+2016-06-04 20:39:26 1422 [Note] InnoDB: Creating tablespace and datafile system tables.
+2016-06-04 20:39:26 1422 [Note] InnoDB: Tablespace and datafile system tables created.
+2016-06-04 20:39:26 1422 [Note] InnoDB: Waiting for purge to start
+2016-06-04 20:39:26 1422 [Note] InnoDB: 5.6.14 started; log sequence number 0
+2016-06-04 20:39:26 1422 [Note] Binlog end
+2016-06-04 20:39:26 1422 [Note] InnoDB: FTS optimize thread exiting.
+2016-06-04 20:39:26 1422 [Note] InnoDB: Starting shutdown...
+2016-06-04 20:39:28 1422 [Note] InnoDB: Shutdown completed; log sequence number 1625977
+OK
+
+Filling help tables...2016-06-04 20:39:28 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2016-06-04 20:39:28 1445 [Note] InnoDB: The InnoDB memory heap is disabled
+2016-06-04 20:39:28 1445 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+2016-06-04 20:39:28 1445 [Note] InnoDB: Compressed tables use zlib 1.2.3
+2016-06-04 20:39:28 1445 [Note] InnoDB: Using Linux native AIO
+2016-06-04 20:39:28 1445 [Note] InnoDB: Using CPU crc32 instructions
+2016-06-04 20:39:28 1445 [Note] InnoDB: Initializing buffer pool, size = 128.0M
+2016-06-04 20:39:28 1445 [Note] InnoDB: Completed initialization of buffer pool
+2016-06-04 20:39:28 1445 [Note] InnoDB: Highest supported file format is Barracuda.
+2016-06-04 20:39:28 1445 [Note] InnoDB: 128 rollback segment(s) are active.
+2016-06-04 20:39:28 1445 [Note] InnoDB: Waiting for purge to start
+2016-06-04 20:39:28 1445 [Note] InnoDB: 5.6.14 started; log sequence number 1625977
+2016-06-04 20:39:28 1445 [Note] Binlog end
+2016-06-04 20:39:28 1445 [Note] InnoDB: FTS optimize thread exiting.
+2016-06-04 20:39:28 1445 [Note] InnoDB: Starting shutdown...
+2016-06-04 20:39:30 1445 [Note] InnoDB: Shutdown completed; log sequence number 1625987
+OK
+
+To start mysqld at boot time you have to copy
+support-files/mysql.server to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+
+  /usr/bin/mysqladmin -u root password 'new-password'
+  /usr/bin/mysqladmin -u root -h lab2 password 'new-password'
+
+Alternatively you can run:
+
+  /usr/bin/mysql_secure_installation
+
+which will also give you the option of removing the test
+databases and anonymous user created by default.  This is
+strongly recommended for production servers.
+
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+
+  cd /usr ; /usr/bin/mysqld_safe &
+
+You can test the MySQL daemon with mysql-test-run.pl
+
+  cd mysql-test ; perl mysql-test-run.pl
+
+The latest information about MySQL is available on the web at
+
+  http://www.mysql.com
+
+Please visit
+
+  http://bugs.mysql.com/
+
+to report bugs. This database is public and can be browsed
+and searched by anyone. If you log in to the system
+you can enter new reports.
+
+New default config file was created as /usr/my.cnf and
+will be used by default by the server when you start it.
+You may edit this file to change server settings
+
+WARNING: Default config file /etc/my.cnf exists on the system
+This file will be read by default by the MySQL server
+If you do not want to use this, either remove it, or use the
+--defaults-file argument to mysqld_safe when starting the server
+
+
+chown -R mysql. /data/
+
+cat /etc/my.cnf 
+#MYSQL configuration
+
+[mysql]
+prompt=mysql:\\u@\\h:\\p/\\d>\\_
+
+[client]
+port            = 3306
+socket          = /data/mysql1/mysql1.sock
+
+[mysqld_multi]
+mysqld=/usr/bin/mysqld_safe
+mysqladmin=/usr/bin/mysqladmin
+log=/data/mysqlmulti_log/mysqlmulti.log
+
+[mysqld1]
+user=mysql
+port            = 3306
+bind-address    = 172.16.74.129
+
+server-id=1
+log-bin=mysql-bin
+
+datadir=/data/mysql1
+socket=/data/mysql1/mysql1.sock
+pid-file=/data/mysql1/mysql1.pid
+
+log-error=/data/mysql1_log/mysql1-err.log
+long_query_time=10
+slow_query_log=1
+slow_query_log_file=/data/mysql1_log/mysql1-slow.log
+general-log = 0
+general_log_file = /data/mysql1_log/mysql1.log
+
+character-set-server = utf8
+collation-server = utf8_unicode_ci
+
+max_heap_table_size = 768M
+tmp_table_size = 768M
+open_files_limit = 20480
+#table_open_cache  = 10240
+#table_definition_cache = 4096
+
+low_priority_updates = 0
+concurrent_insert = 2
+connect_timeout = 5
+interactive_timeout = 600
+wait_timeout = 3600
+max_allowed_packet = 256M
+myisam_sort_buffer_size = 256M
+key_buffer_size = 512M
+
+read_buffer_size = 4M
+read_rnd_buffer_size = 8M
+sort_buffer_size = 16M
+join_buffer_size = 32M
+
+max_connections = 600
+max_user_connections = 500
+max_connect_errors = 999999
+thread_cache_size = 128
+thread_concurrency = 4
+query_cache_size = 128M
+query_cache_limit = 32M
+query_cache_type = 1
+query_cache_min_res_unit = 512
+query_prealloc_size = 262144
+query_alloc_block_size = 65536
+
+skip_external_locking
+skip-name-resolve
+bulk_insert_buffer_size = 64M
+sync_frm = 1
+
+mysqld_multi start 1
+
+mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld1 is running
+
+Replication setup
+lab2:
+mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 3
+Server version: 5.6.14-log MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+GRANT REPLICATION SLAVE ON *.* to 'repl'@'172.16.74.130' IDENTIFIED BY 'sl@vE300516';
+
+FLUSH TABLES WITH READ LOCK;
+Query OK, 0 rows affected (0,00 sec)
+
+mysql:root@localhost:mysql1.sock/(none)>  SHOW MASTER STATUS;
++------------------+----------+--------------+------------------+-------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++------------------+----------+--------------+------------------+-------------------+
+| mysql-bin.000001 |      532 |              |                  |                   |
++------------------+----------+--------------+------------------+------------cre-------+
+1 row in set (0,00 sec)
+
+lab3:
+CHANGE MASTER TO MASTER_HOST='172.16.74.129', MASTER_USER='repl', MASTER_PASSWORD='sl@vE300516', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=532;
+
+Query OK, 0 rows affected, 2 warnings (0,01 sec)
+start slave;
+show slave status\G;
+*************************** 1. row ***************************
+               Slave_IO_State: 
+                  Master_Host: lab2
+                  Master_User: repl
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000001
+          Read_Master_Log_Pos: 532
+               Relay_Log_File: mysql1-relay-bin.000001
+                Relay_Log_Pos: 4
+        Relay_Master_Log_File: mysql-bin.000001
+             Slave_IO_Running: No
+            Slave_SQL_Running: No
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 532
+              Relay_Log_Space: 120
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: NULL
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error: 
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 0
+                  Master_UUID: 
+             Master_Info_File: /data/mysql1/master.info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: 
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+1 row in set (0,00 sec)
+
+
+lab2:
+
+mysql:root@localhost:mysql1.sock/(none)> UNLOCK TABLES;
+Query OK, 0 rows affected (0,00 sec)
+
+mysql:root@localhost:mysql1.sock/(none)> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+3 rows in set (0,00 sec)
+
+
+
+
+
+
+
+
+
+
