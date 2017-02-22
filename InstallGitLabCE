@@ -1,0 +1,183 @@
+Install Gitlab CE 8.16 on Centos 7
+https://about.gitlab.com/downloads/#centos7
+Found here: https://packages.gitlab.com/gitlab/gitlab-ce?filter=rpms
+Download: https://packages.gitlab.com/gitlab/gitlab-ce/packages/ol/7/gitlab-ce-8.16.4-ce.0.el7.x86_64.rpm
+1. Install 
+rpm -ivh gitlab-ce-8.16.4-ce.0.el7.x86_64.rpm 
+Preparing...                ########################################### [100%]
+   1:gitlab-ce              ########################################### [100%]
+       *.                  *.
+      ***                 ***
+     *****               *****
+    .******             *******
+    ********            ********
+   ,,,,,,,,,***********,,,,,,,,,
+  ,,,,,,,,,,,*********,,,,,,,,,,,
+  .,,,,,,,,,,,*******,,,,,,,,,,,,
+      ,,,,,,,,,*****,,,,,,,,,.
+         ,,,,,,,****,,,,,,
+            .,,,***,,,,
+                ,*,.
+
+     _______ __  __          __
+    / ____(_) /_/ /   ____ _/ /_
+   / / __/ / __/ /   / __ `/ __ \
+  / /_/ / / /_/ /___/ /_/ / /_/ /
+  \____/_/\__/_____/\__,_/_.___/
+
+
+gitlab: Thank you for installing GitLab!
+gitlab: To configure and start GitLab, RUN THE FOLLOWING COMMAND:
+
+sudo gitlab-ctl reconfigure
+
+gitlab: GitLab should be reachable at http://lab2
+gitlab: Otherwise configure GitLab for your system by editing /etc/gitlab/gitlab.rb file
+gitlab: And running reconfigure again.
+gitlab: 
+gitlab: For a comprehensive list of configuration options please see the Omnibus GitLab readme
+gitlab: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/README.md
+gitlab: 
+
+gitlab: GitLab now ships with a newer version of PostgreSQL (9.6.1), and will be used
+gitlab: as the default in the next major release. To upgrade, RUN THE FOLLOWING COMMANDS:
+
+sudo gitlab-ctl pg-upgrade
+
+gitlab: For more details, please see:
+gitlab: https://docs.gitlab.com/omnibus/settings/database.html#upgrade-packaged-postgresql-server
+gitlab: 
+It looks like GitLab has not been configured yet; skipping the upgrade script.
+
+2. Configuration 
+cp -r /etc/gitlab/gitlab.rb /etc/gitlab/gitlab.rb.org
+
+gitlab-ctl reconfigure
+Running handlers:
+Running handlers complete
+Chef Client finished, 232/327 resources updated in 01 minutes 40 seconds
+gitlab Reconfigured!
+
+gitlab-ctl start
+ok: run: gitlab-workhorse: (pid 2499) 595s
+ok: run: logrotate: (pid 2427) 624s
+ok: run: nginx: (pid 2413) 625s
+ok: run: postgresql: (pid 2263) 675s
+ok: run: redis: (pid 2180) 681s
+ok: run: sidekiq: (pid 2396) 632s
+ok: run: unicorn: (pid 2365) 638s
+
+3. Enjoy 
+http://lab2
+Change password for user root
+Login and start to setup your projects
+
+4. Process info
+
+ps -ef |grep gitlab
+root       2158      1  0 09:00 ?        00:00:00 runsvdir -P /opt/gitlab/service log: ...........................................................................................................................................................................................................................................................................................................................................................................................................
+root       2179   2178  0 09:00 ?        00:00:00 svlogd -tt /var/log/gitlab/redis
+496        2180   2178  0 09:00 ?        00:00:08 /opt/gitlab/embedded/bin/redis-server 127.0.0.1:0                     
+root       2262   2261  0 09:00 ?        00:00:00 svlogd -tt /var/log/gitlab/postgresql
+495        2263   2261  0 09:00 ?        00:00:00 /opt/gitlab/embedded/bin/postgres -D /var/opt/gitlab/postgresql/data
+root       2364   2363  0 09:01 ?        00:00:00 svlogd -tt /var/log/gitlab/unicorn
+git        2365   2363  0 09:01 ?        00:00:00 /bin/bash /opt/gitlab/embedded/bin/gitlab-unicorn-wrapper
+git        2385      1  2 09:01 ?        00:00:23 unicorn master -D -E production -c /var/opt/gitlab/gitlab-rails/etc/unicorn.rb /opt/gitlab/embedded/service/gitlab-rails/config.ru                                                            
+root       2395   2394  0 09:01 ?        00:00:00 svlogd -tt /var/log/gitlab/sidekiq
+git        2396   2394  4 09:01 ?        00:00:50 sidekiq 4.2.7 gitlab-rails [0 of 25 busy]                                                                                                                                                                              
+root       2404   2158  0 09:01 ?        00:00:00 runsv gitlab-workhorse
+root       2405   2404  0 09:01 ?        00:00:00 svlogd -tt /var/log/gitlab/gitlab-workhorse
+root       2412   2411  0 09:01 ?        00:00:00 svlogd -tt /var/log/gitlab/nginx
+root       2413   2411  0 09:01 ?        00:00:00 nginx: master process /opt/gitlab/embedded/sbin/nginx -p /var/opt/gitlab/nginx
+495        2423   2263  0 09:01 ?        00:00:00 postgres: gitlab gitlabhq_production [local] idle                   
+root       2426   2425  0 09:01 ?        00:00:00 svlogd -tt /var/log/gitlab/logrotate
+root       2427   2425  0 09:01 ?        00:00:00 /bin/sh /opt/gitlab/embedded/bin/gitlab-logrotate-wrapper
+git        2445   2385  0 09:01 ?        00:00:02 unicorn worker[0] -D -E production -c /var/opt/gitlab/gitlab-rails/etc/unicorn.rb /opt/gitlab/embedded/service/gitlab-rails/config.ru                                                         
+git        2448   2385  0 09:01 ?        00:00:03 unicorn worker[1] -D -E production -c /var/opt/gitlab/gitlab-rails/etc/unicorn.rb /opt/gitlab/embedded/service/gitlab-rails/config.ru                                                         
+495        2452   2263  0 09:01 ?        00:00:00 postgres: gitlab gitlabhq_production [local] idle                   
+git        2499   2404  0 09:01 ?        00:00:00 /opt/gitlab/embedded/bin/gitlab-workhorse -listenNetwork unix -listenUmask 0 -listenAddr /var/opt/gitlab/gitlab-workhorse/socket -authBackend http://localhost:8080 -authSocket /var/opt/gitlab/gitlab-rails/sockets/gitlab.socket -documentRoot /opt/gitlab/embedded/service/gitlab-rails/public -pprofListenAddr  -secretPath /opt/gitlab/embedded/service/gitlab-rails/.gitlab_workhorse_secret
+495        3242   2263  0 09:12 ?        00:00:00 postgres: gitlab gitlabhq_production [local] idle                   
+495        3391   2263  0 09:14 ?        00:00:00 postgres: gitlab gitlabhq_production [local] idle                   
+495        3395   2263  0 09:14 ?        00:00:00 postgres: gitlab gitlabhq_production [local] idle                   
+root       3681   1425  0 09:18 pts/0    00:00:00 grep gitlab
+
+
+5. Advantage configuration
+- Su dung database Postgres co san
+	CREATE USER git WITH PASSWORD 'git12345' CREATEDB;
+
+	CREATE DATABASE gitlabhq_production OWNER git;
+	alter role git superuser;
+
+	CREATE EXTENSION pg_trgm;
+	- Cau hinh
+
+	# Disable the built-in Postgres
+	postgresql['enable'] = false
+
+	### GitLab database settings
+	###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
+	###! **Only needed if you use an external database.**
+	gitlab_rails['db_adapter'] = "postgresql"
+	gitlab_rails['db_encoding'] = "utf8"
+	gitlab_rails['db_collation'] = nil
+	gitlab_rails['db_database'] = "gitlabhq_production"
+	gitlab_rails['db_pool'] = 10
+	gitlab_rails['db_username'] = "git"
+	gitlab_rails['db_password'] = "git12345"
+	gitlab_rails['db_host'] = "10.x.x.x"
+	gitlab_rails['db_port'] = "5432"
+	gitlab_rails['db_socket'] = nil
+	gitlab_rails['db_sslmode'] = nil
+	gitlab_rails['db_sslrootcert'] = nil
+
+	- gitlab-ctl reconfigure && restart
+
+
+- Su dung Redis co san
+	#### Redis TCP connection
+	# gitlab_rails['redis_host'] = "127.0.0.1"
+	# gitlab_rails['redis_port'] = 6379
+	# gitlab_rails['redis_password'] = nil
+	# gitlab_rails['redis_database'] = 0
+
+- Su dung SMTP server 
+	### GitLab email server settings
+	###! Docs: https://docs.gitlab.com/omnibus/settings/smtp.html
+	###! **Use smtp instead of sendmail/postfix.**
+
+	gitlab_rails['smtp_enable'] = true
+	gitlab_rails['smtp_address'] = "10.x.x.x"
+	gitlab_rails['smtp_port'] = 25
+
+- Cau hinh Email
+	## gitlab.yml configuration
+	##! Docs: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md
+	################################################################################
+	# gitlab_rails['gitlab_ssh_host'] = 'ssh.host_example.com'
+	gitlab_rails['time_zone'] = 'Asia/Ho_Chi_Minh'
+
+	### Email Settings
+	gitlab_rails['gitlab_email_enabled'] = true
+	gitlab_rails['gitlab_email_from'] = 'gitlab@zalopay.vn'
+	gitlab_rails['gitlab_email_display_name'] = 'GitLab'
+	gitlab_rails['gitlab_email_reply_to'] = 'noreply@zalopay.vn'
+	gitlab_rails['gitlab_email_subject_suffix'] = 'GitLab ZaloPay'
+
+- Su dung nginx + SSL co san
+	## GitLab Workhorse
+	##! Docs: https://gitlab.com/gitlab-org/gitlab-workhorse/blob/master/README.md
+	################################################################################
+
+	gitlab_workhorse['enable'] = true
+	# gitlab_workhorse['ha'] = false
+	gitlab_workhorse['listen_network'] = "tcp"
+	# gitlab_workhorse['listen_umask'] = 000
+	gitlab_workhorse['listen_addr'] = "10.x.x.x:8088"
+	nginx['enable'] = false
+
+	external_url 'https://gitlab.zalopay.vn'
+	Cau hinh nginx tro ve http://10.x.x.x:8088
+
+
+
