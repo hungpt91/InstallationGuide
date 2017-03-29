@@ -1,0 +1,218 @@
+Install Wekan on Centos 7
+
+1. Install Mongo 3.2 first
+2. Download NodeJS lastest version
+https://nodejs.org/dist/latest-v0.10.x/
+cd /opt
+wget https://nodejs.org/dist/latest-v0.10.x/node-v0.10.48-linux-x64.tar.gz
+tar -xvzf node-v0.10.48-linux-x64.tar.gz
+ln -s /opt/node-v0.10.48-linux-x64/bin/node /bin/node
+ln -s /opt/node-v0.10.48-linux-x64/bin/npm /bin/npm
+
+node --version
+v0.10.48
+npm --version
+2.15.1
+3. Install Meteor
+git clone --recursive https://github.com/meteor/meteor.git -b release-1.3.5
+ln -s /opt/meteor/meteor /usr/local/bin/
+
+meteor --version
+Unreleased, running from a checkout at ea31532 (HEAD, tag: release/METEOR@1.3.5.1, origin/release-1.3.5, release-1.3.5)
+4. Build Wekan from source
+git clone https://github.com/wekan/wekan
+cd wekan
+
+npm -g install node-gyp
+npm WARN engine request@2.81.0: wanted: {"node":">= 4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine har-validator@4.2.1: wanted: {"node":">=4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine form-data@2.1.2: wanted: {"node":">= 0.12"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine har-schema@1.0.5: wanted: {"node":">=4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine co@4.6.0: wanted: {"iojs":">= 1.0.0","node":">= 0.12.0"} (current: {"node":"0.10.48","npm":"2.15.1"})
+/usr/bin/node-gyp -> /usr/lib/node_modules/node-gyp/bin/node-gyp.js
+node-gyp@3.6.0 /usr/lib/node_modules/node-gyp
+├── rimraf@2.6.1
+├── graceful-fs@4.1.11
+├── semver@5.3.0
+├── osenv@0.1.4 (os-tmpdir@1.0.2, os-homedir@1.0.2)
+├── nopt@3.0.6 (abbrev@1.1.0)
+├── fstream@1.0.11 (inherits@2.0.3)
+├── which@1.2.14 (isexe@2.0.0)
+├── tar@2.2.1 (inherits@2.0.3, block-stream@0.0.9)
+├── mkdirp@0.5.1 (minimist@0.0.8)
+├── minimatch@3.0.3 (brace-expansion@1.1.6)
+├── glob@7.1.1 (path-is-absolute@1.0.1, inherits@2.0.3, fs.realpath@1.0.0, once@1.4.0, inflight@1.0.6)
+├── npmlog@4.0.2 (console-control-strings@1.1.0, set-blocking@2.0.0, are-we-there-yet@1.1.2, gauge@2.7.3)
+└── request@2.81.0 (is-typedarray@1.0.0, oauth-sign@0.8.2, aws-sign2@0.6.0, forever-agent@0.6.1, tunnel-agent@0.6.0, caseless@0.12.0, stringstream@0.0.5, isstream@0.1.2, json-stringify-safe@5.0.1, performance-now@0.2.0, safe-buffer@5.0.1, extend@3.0.0, aws4@1.6.0, uuid@3.0.1, qs@6.4.0, combined-stream@1.0.5, form-data@2.1.2, mime-types@2.1.15, tough-cookie@2.3.2, hawk@3.1.3, http-signature@1.1.1, har-validator@4.2.1)
+
+
+npm -g install fibers
+-
+> fibers@1.0.15 install /usr/lib/node_modules/fibers
+> node build.js || nodejs build.js
+
+gyp WARN EACCES user "root" does not have permission to access the dev dir "/root/.node-gyp/0.10.48"
+gyp WARN EACCES attempting to reinstall using temporary dev dir "/usr/lib/node_modules/fibers/.node-gyp"
+make: Entering directory `/usr/lib/node_modules/fibers/build'
+  CXX(target) Release/obj.target/fibers/src/fibers.o
+  CXX(target) Release/obj.target/fibers/src/coroutine.o
+  CC(target) Release/obj.target/fibers/src/libcoro/coro.o
+  SOLINK_MODULE(target) Release/obj.target/fibers.node
+  COPY Release/fibers.node
+make: Leaving directory `/usr/lib/node_modules/fibers/build'
+Installed in `/usr/lib/node_modules/fibers/bin/linux-x64-11/fibers.node`
+fibers@1.0.15 /usr/lib/node_modules/fibers
+
+
+npm install
+npm WARN engine string-width@2.0.0: wanted: {"node":">=4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine esprima@3.1.3: wanted: {"node":">=4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine is-fullwidth-code-point@2.0.0: wanted: {"node":">=4"} (current: {"node":"0.10.48","npm":"2.15.1"})
+npm WARN engine co@4.6.0: wanted: {"iojs":">= 1.0.0","node":">= 0.12.0"} (current: {"node":"0.10.48","npm":"2.15.1"})
+xss@0.3.3 node_modules/xss
+├── cssfilter@0.0.9
+└── commander@2.9.0 (graceful-readlink@1.0.1)
+
+eslint@2.13.1 node_modules/eslint
+├── path-is-inside@1.0.2
+├── path-is-absolute@1.0.1
+├── imurmurhash@0.1.4
+├── pluralize@1.2.1
+├── strip-json-comments@1.0.4
+├── ignore@3.2.6
+├── estraverse@4.2.0
+├── globals@9.17.0
+├── progress@1.1.8
+├── text-table@0.2.0
+├── esutils@2.0.2
+├── user-home@2.0.0 (os-homedir@1.0.2)
+├── is-resolvable@1.0.0 (tryit@1.0.3)
+├── json-stable-stringify@1.0.1 (jsonify@0.0.0)
+├── chalk@1.1.3 (escape-string-regexp@1.0.5, ansi-styles@2.2.1, supports-color@2.0.0, strip-ansi@3.0.1, has-ansi@2.0.0)
+├── levn@0.3.0 (type-check@0.3.2, prelude-ls@1.1.2)
+├── optionator@0.8.2 (fast-levenshtein@2.0.6, type-check@0.3.2, deep-is@0.1.3, wordwrap@1.0.0, prelude-ls@1.1.2)
+├── doctrine@1.5.0 (isarray@1.0.0)
+├── shelljs@0.6.1
+├── debug@2.6.3 (ms@0.7.2)
+├── require-uncached@1.0.3 (resolve-from@1.0.1, caller-path@0.1.0)
+├── mkdirp@0.5.1 (minimist@0.0.8)
+├── concat-stream@1.6.0 (inherits@2.0.3, typedarray@0.0.6, readable-stream@2.2.6)
+├── glob@7.1.1 (inherits@2.0.3, fs.realpath@1.0.0, inflight@1.0.6, once@1.4.0, minimatch@3.0.3)
+├── is-my-json-valid@2.16.0 (jsonpointer@4.0.1, generate-function@2.0.0, xtend@4.0.1, generate-object-property@1.2.0)
+├── file-entry-cache@1.3.1 (object-assign@4.1.1, flat-cache@1.2.2)
+├── inquirer@0.12.0 (strip-ansi@3.0.1, ansi-regex@2.1.1, ansi-escapes@1.4.0, through@2.3.8, figures@1.7.0, cli-width@2.1.0, run-async@0.1.0, string-width@1.0.2, readline2@1.0.1, rx-lite@3.1.2, cli-cursor@1.0.2)
+├── espree@3.4.0 (acorn@4.0.4, acorn-jsx@3.0.1)
+├── js-yaml@3.8.2 (esprima@3.1.3, argparse@1.0.9)
+├── table@3.8.3 (slice-ansi@0.0.4, ajv-keywords@1.5.1, string-width@2.0.0, ajv@4.11.5)
+├── es6-map@0.1.5 (d@1.0.0, es6-symbol@3.1.1, event-emitter@0.3.5, es6-iterator@2.0.1, es6-set@0.1.5, es5-ext@0.10.15)
+├── lodash@4.17.4
+└── escope@3.6.0 (esrecurse@4.1.0, es6-weak-map@2.0.2)
+
+
+meteor build .build --directory
+=> Running Meteor from a checkout -- overrides project version (Meteor 1.3.5.1)
+caching-compiler: updating npm dependencies -- lru-cache, async...                 
+compileCoffeescript: updating npm dependencies -- coffee-script, source-map...
+webapp: updating npm dependencies -- connect, parseurl, send, useragent...
+ddp-server: updating npm dependencies -- permessage-deflate, sockjs...
+mongo: updating npm dependencies -- mongodb-uri...
+email: updating npm dependencies -- mailcomposer, simplesmtp, stream-buffers...
+http: updating npm dependencies -- request... 
+minifier-js: updating npm dependencies -- uglify-js...
+es5-shim: updating npm dependencies -- es5-shim...
+minifier-css: updating npm dependencies -- css-parse, css-stringify...
+minifyStdCSS: updating npm dependencies -- source-map...
+compileStylusBatch: updating npm dependencies -- stylus, nib...
+                                              
+WARNING: The output directory is under your source tree.
+         Your generated files may get interpreted as source code!
+         Consider building into a different directory instead
+         meteor build ../output
+
+
+ls .build/bundle/
+main.js  programs  README  server  star.json
+
+npm install
+npm WARN package.json meteor-dev-bundle@0.0.0 No description
+npm WARN package.json meteor-dev-bundle@0.0.0 No repository field.
+npm WARN package.json meteor-dev-bundle@0.0.0 No README data
+npm WARN package.json meteor-dev-bundle@0.0.0 No license field.
+|
+> fibers@1.0.13 install /opt/wekan/.build/bundle/programs/server/node_modules/fibers
+> node build.js || nodejs build.js
+
+make: Entering directory `/opt/wekan/.build/bundle/programs/server/node_modules/fibers/build'
+  CXX(target) Release/obj.target/fibers/src/fibers.o
+  CXX(target) Release/obj.target/fibers/src/coroutine.o
+  CC(target) Release/obj.target/fibers/src/libcoro/coro.o
+  SOLINK_MODULE(target) Release/obj.target/fibers.node
+  COPY Release/fibers.node
+make: Leaving directory `/opt/wekan/.build/bundle/programs/server/node_modules/fibers/build'
+Installed in `/opt/wekan/.build/bundle/programs/server/node_modules/fibers/bin/linux-x64-v8-3.14/fibers.node`
+npm WARN cannot run in wd meteor-dev-bundle@0.0.0 node npm-rebuild.js (wd=/opt/wekan/.build/bundle/programs/server)
+ansi-regex@0.2.1 node_modules/ansi-regex
+
+ansi-styles@1.1.0 node_modules/ansi-styles
+
+escape-string-regexp@1.0.5 node_modules/escape-string-regexp
+
+has-ansi@0.1.0 node_modules/has-ansi
+
+strip-ansi@0.3.0 node_modules/strip-ansi
+
+supports-color@0.2.0 node_modules/supports-color
+
+chalk@0.5.1 node_modules/chalk
+
+eachline@2.3.3 node_modules/eachline
+
+type-of@2.0.1 node_modules/type-of
+
+amdefine@1.0.0 node_modules/amdefine
+
+meteor-promise@0.7.2 node_modules/meteor-promise
+
+asap@2.0.4 node_modules/asap
+
+underscore@1.5.2 node_modules/underscore
+
+source-map-support@0.3.2 node_modules/source-map-support
+
+semver@4.1.0 node_modules/semver
+
+promise@7.1.1 node_modules/promise
+
+source-map@0.1.32 node_modules/source-map
+
+fibers@1.0.13 node_modules/fibers
+
+6. Config Wekan run as a service
+
+cat /etc/systemd/system/wekan.service
+[Unit]
+Description=The Wekan Service
+After=syslog.target network.target
+
+[Service]
+EnvironmentFile=/etc/init.d/wekan
+User=wekan
+Group=wekan
+WorkingDirectory=/opt/wekan/.build/bundle
+ExecStart=/bin/node main.js
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+
+cat /etc/init.d/wekan 
+cd /opt/wekan/.build/bundle
+NODE_ENV=production
+MONGO_URL='mongodb://127.0.0.1:27017/wekan'
+ROOT_URL='https://yourdomain'
+MAIL_URL='smtp://10.x.x.x:25/'
+MAIL_FROM='youremail'
+PORT=9000
+7. Restart and enable service
+systemctl restart wekan && systemctl enable wekan
