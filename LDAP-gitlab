@@ -1,0 +1,44 @@
+Setup Gitlab CE with LDAP authentication
+
+1.Edit configuration file:
+vi /etc/gitlab/gitlab.rb
+
+gitlab_rails['ldap_enabled'] = true
+
+###! **remember to close this block with 'EOS' below**
+gitlab_rails['ldap_servers'] = YAML.load <<-'EOS'
+ main: # 'main' is the GitLab 'provider ID' of this LDAP server
+  label: 'LDAP'
+  host: 'your-ldap-server'
+  port: 636 # port for ssl, 389 for plain
+  uid: 'sAMAccountName'
+  method: 'ssl' # ssl/tls/or plain
+  bind_dn: 'CN=username,OU=Service Accounts,OU=xx,DC=xx,DC=xx,DC=xx'
+  password: 'your-password'
+  active_directory: true
+  allow_username_or_email_login: true
+  block_auto_created_users: true
+  base: 'dc=xx,dc=xx,dc=xx'
+  user_filter: ''
+EOS
+
+NOTE: The configuration file is spacing sensitive! There must be:
+One space before “main”
+Two spaces before each attribute below “main”
+No spaces before “EOS”
+2. Reload your configuration
+gitlab-ctl reconfigure
+and check your connection
+gitlab-rake gitlab:ldap:check
+
+Checking LDAP ...
+
+Server: ldapmain
+LDAP authentication... Success
+LDAP users with access to your GitLab server (only showing the first 100 results)
+
+Checking LDAP ... Finished
+3. Enjoys
+
+ 
+
