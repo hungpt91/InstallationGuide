@@ -16,7 +16,7 @@ upstream bug{
         }
 
     server {
-	    listen      10.60.67.10:80;
+	listen      xxx:80;
         server_name yourdomain.com;
         access_log /data/logs/http.yourdomain.com  main;
         access_log off;
