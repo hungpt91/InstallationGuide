@@ -1,0 +1,76 @@
+Lỗi: 
+/opt/dell/srvadmin/sbin/omreport storage pdisk controller=0
+Invalid controller value. Read, controller=0
+No controllers found.
+
+1: Kiểm tra status của Srvadmin
+/opt/dell/srvadmin/sbin/srvadmin-services.sh status
+/etc/init.d/instsvcdrv: line 1589: 22532 Segmentation fault      (core dumped) ${ISVCDD_SBIN_DIR}/${ISVCDD_DCHCFG_EXE} command=getsystype > /dev/null 2>&1
+dcdbas (module) is running
+dell_rbu (module) is running
+/etc/init.d/instsvcdrv: line 1589: 22558 Segmentation fault      (core dumped) ${ISVCDD_SBIN_DIR}/${ISVCDD_DCHCFG_EXE} command=getsystype > /dev/null 2>&1
+dsm_sa_datamgrd (pid 25349 25247) is running
+dsm_sa_eventmgrd (pid 25304) is running
+dsm_sa_snmpd (pid 25316) is running
+dsm_om_shrsvcd (pid 25361) is running...
+dsm_om_connsvcd (pid  25424) is running...
+
+2:Đếm / Liệt kê các process sử dụng semaphores
+
+ipcs -st |wc -l
+1028
+3: Check /var/log/messages
+
+Jan 26 14:01:36 PRO_CSM_DataRaw195 Server Administrator (Shared Library): 22930 0 - Data Engine  A semaphore set has to be created but the system limit for the maximum number of semaphore sets has been exceeded
+Jan 26 14:01:36 PRO_CSM_DataRaw195 Server Administrator (Shared Library): 22930 0 - Data Engine  A semaphore set has to be created but the system limit for the maximum number of semaphore sets has been exceeded
+
+
+3+: output của OMSM
+Broadcast message from root@PRO_CSM_DataRaw195 (Tue Jan 26 14:07:47 2016):
+
+OMSM : The current firmware version  21.1.0-0007 is older than the required fir
+mware version 21.3.1-0001 for a controller of model 0x1F34:  Controller 0 (PERC
+ H710P Mini) 
+
+Broadcast message from root@PRO_CSM_DataRaw195 (Tue Jan 26 14:07:48 2016):
+
+OMSM : Disk found is not supplied by an authorized hardware provider:  Physical
+ Disk 0:1:8 Controller 0, Connector 0
+
+Broadcast message from root@PRO_CSM_DataRaw195 (Tue Jan 26 14:07:48 2016):
+
+OMSM : Disk found is not supplied by an authorized hardware provider:  Physical
+ Disk 0:1:9 Controller 0, Connector 0
+
+Root cause:
+1: Do server admin sử dụng Share Library tạo Semaphore Arrays nhưng đã tới giới hạn của kernel.
+Nguyên nhân tạo ra Semaphore có thể là do lỗi Segmentation fault (core dumped), hoặc crash lúc restart lại service như nginx, lib C...
+
+Solution:
+A: Có thể tăng giới hạn của ipcs lên:
+sysctl -w kernel.sem="250 32000 100 1184"
+
+B: Thực hiện như sau:
+1: Chạy script sau để xóa toàn bộ semaphore 
+cat kill_ipcs.sh 
+#!/bin/sh
+ME=`whoami`
+IPCS_S=`ipcs -s | egrep "0x[0-9a-f]+ [0-9]+" | grep $ME | cut -f2 -d" "`
+for id in $IPCS_S; do
+  ipcrm -s $id;
+done
+2: Restart lại srvadmin
+/opt/dell/srvadmin/sbin/srvadmin-services.sh restart
+
+
+3: Check lại status
+/opt/dell/srvadmin/sbin/omreport storage pdisk controller=0
+List of Physical Disks on Controller PERC H710P Mini (Embedded)
+
+Tham khảo:
+http://serverfault.com/questions/352026/anyone-know-how-to-fix-issues-with-omsa-on-red-hat-5-1-that-reports-no-controll
+http://stackoverflow.com/questions/2143404/delete-all-shared-memory-and-semaphores-on-linux
+http://serverfault.com/questions/668151/nginx-orphans-a-semaphore-on-restart-4294967295
+
+
+

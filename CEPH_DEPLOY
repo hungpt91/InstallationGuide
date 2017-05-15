@@ -1,0 +1,182 @@
+10.60.40.11 ceph-storage1
+10.60.40.13 ceph-storage2
+10.60.40.12 ceph-deploy
+
+
+yum install -y yum-utils && yum-config-manager --add-repo https://dl.fedoraproject.org/pub/epel/7/x86_64/ &&  yum install --nogpgcheck -y epel-release &&  rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 &&  rm /etc/yum.repos.d/dl.fedoraproject.org*
+
+yum update && yum install ceph-deploy
+
+yum install ntp ntpdate ntp-doc
+
+yum install yum-plugin-priorities
+
+useradd -d /home/cdeploy -m cdeploy
+passwd cdeploy
+echo "cdeploy ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/cdeploy
+
+su - cdeploy
+ssh-keygen
+
+ssh-copy-id cdeploy@ceph-storage1 
+
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'cdeploy@ceph-storage1'"
+and check to make sure that only the key(s) you wanted were added.
+
+[cdeploy@ceph-deploy ~]$ ssh-copy-id cdeploy@ceph-storage2
+
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'cdeploy@ceph-storage2'"
+and check to make sure that only the key(s) you wanted were added.
+
+
+sudo visudo
+Defaults:ceph !requiretty
+
+su - cdeploy
+mkdir ceph && cd ceph
+
+ceph-deploy new ceph-storage1
+
+ls
+ceph.conf  ceph.log  ceph.mon.keyring
+
+cat ceph.conf 
+[global]
+fsid = b02b393d-3212-4f92-878a-6a5c54231f2d
+mon_initial_members = ceph-storage1
+mon_host = 10.60.40.11
+auth_cluster_required = cephx
+auth_service_required = cephx
+auth_client_required = cephx
+filestore_xattr_use_omap = true
+osd pool default size = 2
+cluster network = 10.60.40.0/24
+
+ceph-deploy install ceph-deploy ceph-storage1 ceph-storage2
+
+[ceph-storage2][DEBUG ] Complete!
+[ceph-storage2][INFO  ] Running co
+
+mmand: sudo ceph --version
+[ceph-storage2][DEBUG ] ceph version 9.2.1 (752b6a3020c3de74e07d2a8b4c5e48dab5a6b6fd)
+
+
+ceph-deploy mon create-initial
+ls
+ceph.bootstrap-mds.keyring  ceph.bootstrap-osd.keyring  ceph.bootstrap-rgw.keyring  ceph.client.admin.keyring  ceph.conf  ceph.log  ceph.mon.keyring
+
+ceph-deploy disk list ceph-storage1
+
+[root@ceph-storage1 ~]# lsblk
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+sda      8:0    0 419,2G  0 disk 
+├─sda1   8:1    0   200M  0 part /boot
+├─sda2   8:2    0     4G  0 part [SWAP]
+└─sda3   8:3    0   415G  0 part /
+sdb      8:16   0   8,2T  0 disk 
+sdc      8:32   0   2,7T  0 disk 
+sdd      8:48   0   2,7T  0 disk 
+sde      8:64   0   2,7T  0 disk 
+sdf      8:80   0   2,7T  0 disk 
+sdg      8:96   0   2,7T  0 disk 
+sdh      8:112  0   2,7T  0 disk
+
+[ceph-storage1][DEBUG ] /dev/sda :
+[ceph-storage1][DEBUG ]  /dev/sda2 swap, swap
+[ceph-storage1][DEBUG ]  /dev/sda3 other, ext4, mounted on /
+[ceph-storage1][DEBUG ]  /dev/sda1 other, ext4, mounted on /boot
+[ceph-storage1][DEBUG ] /dev/sdb other, unknown
+[ceph-storage1][DEBUG ] /dev/sdc other, unknown
+[ceph-storage1][DEBUG ] /dev/sdd other, unknown
+[ceph-storage1][DEBUG ] /dev/sde other, unknown
+[ceph-storage1][DEBUG ] /dev/sdf other, unknown
+[ceph-storage1][DEBUG ] /dev/sdg other, unknown
+[ceph-storage1][DEBUG ] /dev/sdh other, unknown
+
+Thực hiện xóa toàn bộ partition trên các disk, từ c tới h.
+ceph-deploy disk zap ceph-storage1:sdc
+
+
+ceph-deploy osd prepare ceph-storage1:sdc
+
+
+ceph-deploy osd activate osdserver1:/dev/sdb1:/dev/ssd1
+
+ceph-deploy admin ceph-deploy ceph-storage1 ceph-storage2
+
+sudo chmod +r /etc/ceph/ceph.client.admin.keyring
+
+ceph status
+    cluster b02b393d-3212-4f92-878a-6a5c54231f2d
+     health HEALTH_WARN
+            14 pgs degraded
+            14 pgs stuck degraded
+            64 pgs stuck unclean
+            14 pgs stuck undersized
+            14 pgs undersized
+            too few PGs per OSD (10 < min 30)
+     monmap e1: 1 mons at {ceph-storage1=10.60.40.11:6789/0}
+            election epoch 2, quorum 0 ceph-storage1
+     osdmap e30: 6 osds: 6 up, 6 in; 50 remapped pgs
+            flags sortbitwise
+      pgmap v60: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            221 MB used, 16728 GB / 16728 GB avail
+                  25 active+remapped
+                  25 active
+                  14 active+undersized+degraded
+
+
+ceph osd tree
+ID WEIGHT   TYPE NAME              UP/DOWN REWEIGHT PRIMARY-AFFINITY 
+-1 32.67352 root default                                             
+-2 16.33676     host ceph-storage1                                   
+ 0  2.72279         osd.0               up  1.00000          1.00000 
+ 1  2.72279         osd.1               up  1.00000          1.00000 
+ 2  2.72279         osd.2               up  1.00000          1.00000 
+ 3  2.72279         osd.3               up  1.00000          1.00000 
+ 4  2.72279         osd.4               up  1.00000          1.00000 
+ 5  2.72279         osd.5               up  1.00000          1.00000 
+-3 16.33676     host ceph-storage2                                   
+ 6  2.72279         osd.6               up  1.00000          1.00000 
+ 7  2.72279         osd.7               up  1.00000          1.00000 
+ 8  2.72279         osd.8               up  1.00000          1.00000 
+ 9  2.72279         osd.9               up  1.00000          1.00000 
+10  2.72279         osd.10              up  1.00000          1.00000 
+11  2.72279         osd.11              up  1.00000          1.00000 
+
+ceph status
+    cluster b02b393d-3212-4f92-878a-6a5c54231f2d
+     health HEALTH_WARN
+            too few PGs per OSD (10 < min 30)
+     monmap e1: 1 mons at {ceph-storage1=10.60.40.11:6789/0}
+            election epoch 2, quorum 0 ceph-storage1
+     osdmap e89: 12 osds: 12 up, 12 in
+            flags sortbitwise
+      pgmap v196: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            449 MB used, 33457 GB / 33457 GB avail
+                  64 active+clean
+
+ceph -s
+    cluster b02b393d-3212-4f92-878a-6a5c54231f2d
+     health HEALTH_OK
+     monmap e1: 1 mons at {ceph-storage1=10.60.40.11:6789/0}
+            election epoch 1, quorum 0 ceph-storage1
+     osdmap e91: 12 osds: 12 up, 12 in
+            flags sortbitwise
+      pgmap v210: 320 pgs, 2 pools, 0 bytes data, 0 objects
+            467 MB used, 33457 GB / 33457 GB avail
+                 320 active+clean
+
+
+
+
+
+
+
+

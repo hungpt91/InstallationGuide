@@ -1,0 +1,108 @@
+[root@yourdomain ~]# lsblk
+NAME                                                                                     MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+vda                                                                                      253:0    0   50G  0 disk 
+└─vda1                                                                                   253:1    0   50G  0 part /
+vdb                                                                                      253:16   0  450G  0 disk 
+loop0                                                                                      7:0    0  100G  0 loop 
+└─docker-253:1-393511-pool                                                               252:0    0  100G  0 dm   
+  ├─docker-253:1-393511-e2d0527917868e7e0b8aaed3d8e8fe4296c12ecc7da7cf754ca4918886d80d4e 252:1    0  100G  0 dm   
+  ├─docker-253:1-393511-e83fd59a7e37fd4b0dce7432c528c343f19c3716e78cbc1543c4cb4e22441a1d 252:2    0  100G  0 dm   
+  ├─docker-253:1-393511-56e2c97fa2ee22431c5a1cec46036c61c0055f06821681331ff830afbd36d42f 252:3    0  100G  0 dm   
+  └─docker-253:1-393511-0fd9ecfe19c03539d9120f06d7d78052a08a1e799a804a2cbf639ccb9201b87f 252:4    0  100G  0 dm   
+loop1                                                                                      7:1    0    2G  0 loop 
+└─docker-253:1-393511-pool                                                               252:0    0  100G  0 dm   
+  ├─docker-253:1-393511-e2d0527917868e7e0b8aaed3d8e8fe4296c12ecc7da7cf754ca4918886d80d4e 252:1    0  100G  0 dm   
+  ├─docker-253:1-393511-e83fd59a7e37fd4b0dce7432c528c343f19c3716e78cbc1543c4cb4e22441a1d 252:2    0  100G  0 dm   
+  ├─docker-253:1-393511-56e2c97fa2ee22431c5a1cec46036c61c0055f06821681331ff830afbd36d42f 252:3    0  100G  0 dm   
+  └─docker-253:1-393511-0fd9ecfe19c03539d9120f06d7d78052a08a1e799a804a2cbf639ccb9201b87f 252:4    0  100G  0 dm
+
+
+[root@yourdomain ~]# vgs
+File descriptor 63 (pipe:[463666]) leaked on vgs invocation. Parent PID 4809: -bash
+  VG   #PV #LV #SN Attr   VSize   VFree  
+  data   1   0   0 wz--n- 400,00g 400,00g
+[root@yourdomain ~]# lvs
+File descriptor 63 (pipe:[428599]) leaked on lvs invocation. Parent PID 4809: -bash
+[root@yourdomain ~]# pvs
+File descriptor 63 (pipe:[428604]) leaked on pvs invocation. Parent PID 4809: -bash
+  PV         VG   Fmt  Attr PSize   PFree  
+  /dev/vdb1  data lvm2 a--  400,00g 400,00g
+[root@yourdomain ~]# vgdisplay
+File descriptor 63 (pipe:[465307]) leaked on vgdisplay invocation. Parent PID 4809: -bash
+  --- Volume group ---
+  VG Name               data
+  System ID             
+  Format                lvm2
+  Metadata Areas        1
+  Metadata Sequence No  1
+  VG Access             read/write
+  VG Status             resizable
+  MAX LV                0
+  Cur LV                0
+  Open LV               0
+  Max PV                0
+  Cur PV                1
+  Act PV                1
+  VG Size               400,00 GiB
+  PE Size               4,00 MiB
+  Total PE              102399
+  Alloc PE / Size       0 / 0   
+  Free  PE / Size       102399 / 400,00 GiB
+  VG UUID               h06bXd-Cp0m-zvaE-QuC2-ftuL-sE1d-N5UnDN
+
+
+
+fdisk /dev/vdb 
+fdisk -l
+fdisk /dev/vdb 
+Trong đó bạn chọn n để bắt đầu tạo partition
+
+Bạn chọn p để tạo partition primary
+
+Bạn chọn 1 để tạo partition primary 1
+
+Tại First sector (2048-20971519, default 2048) bạn để mặc định
+
+Tại Last sector, +sectors or +size{K,M,G} (2048-20971519, default 20971519) bạn chọn +1G để partition bạn tạo ra có dung lượng 1 G
+
+Bạn chọn w để lưu lại và thoát.
+
+Bạn chọn t để thay đổi định dạng partition
+
+Bạn chọn 8e để đổi thành LVM
+
+
+
+[root@yourdomain ~]# lvcreate -L 40G -n lv-so1 vg-so
+File descriptor 63 (pipe:[28893]) leaked on lvcreate invocation. Parent PID 11383: -bash
+  Logical volume "lv-so1" created.
+[root@yourdomain ~]# lvcreate -L 40G -n lv-so2 vg-so
+File descriptor 63 (pipe:[27220]) leaked on lvcreate invocation. Parent PID 11383: -bash
+  Logical volume "lv-so2" created.
+[root@yourdomain ~]# 
+[root@yourdomain ~]# 
+[root@yourdomain ~]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda1        50G  3,2G   44G   7% /
+devtmpfs         16G     0   16G   0% /dev
+tmpfs            16G     0   16G   0% /dev/shm
+tmpfs            16G  8,3M   16G   1% /run
+tmpfs            16G     0   16G   0% /sys/fs/cgroup
+[root@yourdomain ~]# lvs
+File descriptor 63 (pipe:[27976]) leaked on lvs invocation. Parent PID 11383: -bash
+  LV     VG    Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  lv-so1 vg-so -wi-a----- 40,00g                                                    
+  lv-so2 vg-so -wi-a----- 40,00g
+
+
+
+
+fdisk -l
+fdisk /dev/vdb 
+lsblk
+pvcreate /dev/vdb1
+pvcreate /dev/vdb2
+pvcreate /dev/vdb3
+vgcreate vg-so /dev/vdb1 /dev/vdb2 /dev/vdb3
+vgdisplay
+vgs

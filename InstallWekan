@@ -133,6 +133,9 @@ WARNING: The output directory is under your source tree.
 ls .build/bundle/
 main.js  programs  README  server  star.json
 
+cd .build/bundle/programs/server
+npm install
+
 npm install
 npm WARN package.json meteor-dev-bundle@0.0.0 No description
 npm WARN package.json meteor-dev-bundle@0.0.0 No repository field.

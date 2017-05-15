@@ -1,0 +1,43 @@
+Compaction là gì?
+Trong Cassandra, compaction là quá trình merge nhiều SSTable lại thành 1, trong đó thực hiện merge keys, hợp nhất các comlumns và xóa bỏ các tombstone.
+Mục đích: Do cassandra cho phép write nhiều version của 1 row trong nhiều SSTable, nên khi read, compaction cho phép gom chúng thành 1, để giảm thiểu số lượng SSTable được, và tăng tốc độ read, lấy lại không gian của các dữ liệu trong các SSTable cũ.
+==> Tóm lại compaction để tăng tốc độ read và giảm dung lượng, làm trống không gian bộ nhớ.
+Sau khi compaction thì những SSTable này được đánh dấu là dữ liệu đã cũ và được xóa bỏ không đồng bộ khi JVM thực hiện GC hoặc restart cassandra.
+Các loại compaction:
+Tiered:
+Khi đạt được số lượng SSTable cùng loại (mặc định là 4) thì sẽ merger chúng thành 1 và lặp lại. Ví dụ: có 4 SSTable size X, sẽ merger thành 1 cái size Y, sau đó 4 cái size Y sẽ nhập thành 1 cái size Z, tiếp tục...
+Nhược điểm: 
+Không gian: Tốn bộ nhớ cho việc tạo SSTable, khi compaction, cả SSTable cũ và mới đều tồn tại, trong trường hợp xấu nhất nếu không có delete hoặc overwrites, 1 compaction tiêu tốn đế 2 lần không gian cho 1 SSTable.
+Hiệu suất: Không đảm bảo được có bao nhiêu SSTable được tạo ra.
+Leveled:
+Được giới thiệu trong Cassandra 1.0, dựa trên leveldb của Google. Chiến lược nén này tạo ra các SSTable có độ lớn cố định, mặc định là 5MB, và nhóm chúng thành 1 cấp với các mức độ kích thước khác nhau. Mỗi cấp độ sẽ lớn hơn 10 lần so với cấp trước nó.
+Khi 1 SSTable được tạo ở L0, thì ngay lập tức được nén với L1, khi L1 đầy thì sẽ sinh ra SSTable ở L1 được nâng cấp lên L2, và bất kì SSTable tiếp theo ở L1 sẽ được nén ở L2. Trong cùng 1 cấp độ, đảm bảo khong có sự chồng chéo, có nghĩa là 1 row có thể xuất hiện chỉ 1 lần trong 1 cấp độ, tuy nhiên, 1 row có thể xuất hiện trong nhiều level.
+Leveled giải quyết được những hạn chế mà Tiered còn mắc phải.
+Không gian: Chỉ đòi hỏi độ lớn gấp 10 lần độ lớn của SSTables
+Hiệu suất: Đảm bảo hơn 90% tất cả các lệnh read đều được thực hiện. Trường hợp xấu nhất là bị chặn bởi tổng số level. 10TB dữ liệu thì có 7 level.
+Nên sử dụng trong trường hợp nào:
+Leveled:
+Tốt hơn cho việc read, tỉ lệ đọc/ghi cao, row được cập nhật thường xuyên.
+Tiered tốt hơn cho việc write, với workload write nhiều, row được write 1 lần và không bao giờ được cập nhật.
+
+(Tombstone: Khi có 1 lệnh delete được tiếp nhận, Cassandra không xóa trực tiếp nó ngay, thay vào đó, chúng được write vào 1 mẫu đặc biệt, đó là các tombstone. Tombstone đại diện cho lệnh delete và các giá trị trước khi tombstone sẽ không được truy vấn trong csdl.)
+	
+
+How Apache Cassandra Write Works
+1.Cassandra Write:
+Khi client gửi 1 request write tới 1 node bất kỳ trong Cassandra, node đó sẽ lấy danh sách N node còn lại phản hồi thông qua ReplicationStrategy, sau đó gửi 1 message RowMutation tới từng node.
+Trên mỗi node sẽ thực hiện các thao tác sau khi nhận được message :
+- Ghi thêm write vào commit log. Commit log là cơ chế phục hồi sự cố và có 1 commit log duy nhât cho mỗi node.
+- Cập nhật dữ liệu trên memtable. 
+Như vậy là 1 request write được tiếp nhận. Do write bao gồm việc ghi thêm vào 1 file và cập nhật trên bộ nhớ, không cập nhật dưới disk, nên write trong cassandra nhanh.
+2.SSTable 
+Tuy nhiên độ lớn của bộ nhớ sẽ có giới hạn và tạm thời, khi Memtable đầy, nó sẽ thực hiện flush xuống  1 cấu trúc lưu trữ trên đĩa, gọi là SSTable. Mỗi SSTable được duy trì dựa trên quan hệ column và nhiều SSTable có thể tồn tại trong 1 colunm. Mỗi SSTable đều 1 bloom filter liên kết với nó.
+Khi mà có nhiều SSTable, sẽ có 1 quá trình gọi là compaction để hợp nhất các SSTable này thành 1.
+3. Hinted Handoff
+Nếu như 1 trong N node bị fail khi write vào, node đó sẽ tạo 1 hint. Khi node trở lại bình thường, node sẽ gửi hint đó tới node phục hồi, Đó là Hinted handoff.
+Điều cần chú ý là có thể có rất nhiều hint được tạo ra cho một node khi nó có vấn đề. Một khi nó on trở lại, sẽ bị flooded bởi các hint này. Có thể disable hinted handoff hoặc giảm thiểu độ ưu tiên của hinted handoff để tránh sự cố này.
+Muốn cải thiện tốc độ write:
+http://wiki.apache.org/cassandra/PerformanceTuning
+Nhất thiết là nơi lưu trữ commit log và data (SSTables) ở 2 disk khác nhau.
+
+
