@@ -1,0 +1,104 @@
+Docker 
+Tại sao có Docker?
+Với Docker, developer có thể tạo bất kỳ ứng dụng với bất kỳ ngôn ngữ hay môi trường nào, việc "Docker hóa" ứng dụng cho phép bạn thực hiện 1 các portable và có thể chạy bất cứ nơi đâu, ví dụ bạn có thể  dùng MacOS hay Windows để code, QA chạy Ubuntu trên Cloud để test và bạn chạy Producution trên RedHat server. 
+Docker giúp chúng ta có thể build và ship ứng dụng với chất lượng cao 1 cách nhanh chóng và thuận tiện hơn.
+Yêu cầu 
+Yêu cầu tối thiểu với Kernel Linux là từ 3.10.x trở lên.( với kernel thấp hơn có thể không cài được hoặc chạy được nhưng không có hiệu suất tốt nhất và nhiều rủi ro kèm theo, khuyến cáo từ 3.10.x trở lên)
+Ở đây, người viết sử dụng Ubuntu 14.04 LTS và Centos 7.1 để trình bày.
+Cài đặt
+Chạy câu lệnh sau để tải bản mới nhất 
+curl -sSL https://get.docker.com/ | sh
+Hiện tại là version 1.8
+Container
+Là tiến trình Docker độc lập cơ bản nhất, được hiểu như 1 VM chứa 1 loạt các tiến trình đang thực thi, có thể hiểu tương tự như chroots
+Một số câu lệnh:
+docker create tạo mới 1 container nhưng không start nó.
+docker run tạo mới và khởi động nó trong cùng 1 tiến trình.
+docker stop Dừng.
+docker start khởi động .
+docker restart restart container.
+docker rm xóa container.
+docker kill SIGKILL container.
+docker attach kết nối đến 1 container đang chạy .
+docker wait blocks cho đến khi container dừng hẳn.
+Nếu bạn muốn chạy và tương tác với container, sử dụng lệnh docker start
+Dùng lệnh docker run --rm để chạy 1 container tạm thời, nó sẽ xóa container sau khi chúng bị stop.
+Dùng lệnh docker --rm -v để xóa toàn bộ các volumes có liên quan để container.
+Dùng lệnh docker run -t -i <images> <shell> để tương tác trực tiếp với images thông qua việc mở 1 kết nối tty.
+Dùng lệnh docker exec -t -i <container> <shell> để tương tác với 1 container đang chạy.
+Dùng lệnh docker run -v $HOSTDIR:$DOCKERDIR để map 1 thư mục từ host với container.
+Nếu bạn muốn tích hợp container với 1 trình quản lý tiến trình của host, chạy daemon với option -r=false và dùng lệnh docker start -a.
+Ngoài ta bạn còn có thể expose port của container thông qua port của host.
+Xem thông tin
+docker ps shows toàn bộ container đang chạy.
+docker logs xem logs.
+docker inspect xem toàn bộ thông tin của container bao gồm cả IP.
+docker events xem các sự kiện.
+docker port show port.
+docker top show toàn bộ process đang chạy.
+docker stats xem thông số tài nguyên trong container.
+docker diff xem thay đổi của container.
+Dùng docker ps -a để xem toàn bộ các container bao gồm đang chạy hoặc đã dừng
+Import/ Export
+docker cp copy file hoặc thư mục giữa container và host.
+docker export Nén toàn bộ filesystem của container thành gói tar.
+Thực thi câu lệnh
+docker exec để thực thi câu lệnh trong container
+Images
+Images thực chất là 1 file template cho container. Từ 1 images có thể build thành nhiều container khác nhau.
+Các câu lệnh
+docker images xem toàn bộ images.
+docker import tạo 1 image từ file tar.
+docker build tạo 1 image từ Dockerfile.
+docker commit tạo 1 image từ container.
+docker rmi xóa image.
+docker load Load 1 image từ 1 file nén tar bao gồm image và tags.
+docker save Lưu 1 image thành 1 file nén với toàn bộ layer, tags và version.
+Thông tin
+docker history xem lịch sử
+docker tag tag images với 1 tên.
+Registry và Repository
+Một Repository là 1 tập hợp với các images đã được tag và được gom lại tạo thành filesystem cho 1 container.
+Một Registry là 1 host, server chưa toàn bộ các repository và cung cấp 1 API HTTP để quản lý download và upload các repository.
+Docker.io là 1 registry trung tâm chứa toàn bộ 1 số lượng lớn repository, chúng ta có thể sử dụng chúng nếu như không quan tâm tới vấn đề bảo mật.
+docker login để login vào registry.
+docker search tìm kiếm registry cho image.
+docker pull pull 1 image từ registry về local.
+docker push push 1 image từ local lên registry.
+Tạo 1 Registry local
+(Xem hướng dẫn sau)
+Dockerfile
+Là file cấu hình, bạn có thể taọ 1 container với câu lệnh docker build với nó.
+Cấu trúc
+.dockerignore
+FROM
+MAINTAINER
+RUN
+CMD
+EXPOSE
+ENV
+ADD
+COPY
+ENTRYPOINT
+VOLUME
+USER
+WORKDIR
+ONBUILD
+Layer
+Quản lý version filesystem bằng việc sử dụng layer, tương tự như git commit hoặc changesets.
+Link
+Link cho phép các container giao tiếp với nhau thông qua port TCP/IP. 
+Volumes
+Sử dụng volumes bằng cách mount volumes từ host cho container.
+Exposing Ports
+Map port của container với port của host(chỉ sử dụng localhost) bằng option -p hoặc sử dụng command EXPOSE 
+Dùng command docker port để kiểm tra những port đã được map.
+Một số tool 
+Machine: là tool cho phép tạo 1 docker host 1 cách dễ dàng trên local hoặc trên cloud.
+Swarm: là giải pháp cluster cho docker, cung cấp 1 group các docker host trên 1 thực thể và cung cấp thuật toán đê lập lịch.
+Compose(hay fig): cung cấp tool để mô tả 1 ứng dụng multi-container với 1 file đơn lẻ.
+Panamax: web UI cho phép cài đặt và download nhiều container.
+https://github.com/wsargent/docker-cheat-sheet
+
+
+

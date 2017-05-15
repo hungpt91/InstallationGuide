@@ -1,0 +1,50 @@
+Cài đặt Redis từ Source
+
+yum -y groupinstall "Development Tools"
+yum -y install openssl-devel tcl
+
+tar -xvzf redis-3.0.7.tar.gz
+cd redis-3.0.7
+PREFIX=/zserver/redis make
+PREFIX=/zserver/redis make install
+
+cp src/redis-trib.rb /zserver/redis/bin/ ## phải dùng lệnh này để tạo cluster nên phải cài ruby và gem cho redis.
+
+
+wget https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.1.tar.gz
+tar -xvzf ruby-2.3.1.tar.gz
+cd ruby-2.3.1
+./configure --prefix=/zserver/ruby
+Make
+make install
+bin/gem install redis
+export PATH=$PATH:/zserver/ruby/bin/
+
+
+
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' >> /etc/rc.local
+
+‘vm.overcommit_memory = 1' to /etc/sysctl.conf
+Sysctl -p 
+
+
+mkdir -p /data/redis/{8000,8001}
+/zserver/redis/bin/redis-server /zserver/redis/conf/8000.conf
+/zserver/redis/bin/redis-server /zserver/redis/conf/8001.conf
+
+Yum install ruby rubygem
+Gem install redis
+
+/zserver/redis/bin/redis-trib.rb create --replicas 1 x.x.x.2:8000 x.x.x.2:8001 x.x.x.3:8000 x.x.x.3:8001 x.x.x.4:8000 x.x.x.4:8001
+/zserver/redis/bin/redis-trib.rb info x.x.x.2:8000
+
+
+ps ax |grep redis
+ 9202 ?        Ssl    0:00 /zserver/redis/bin/redis-server *:8000 [cluster]
+ 9211 ?        Ssl    0:00 /zserver/redis/bin/redis-server *:8001 [cluster]
+
+
+
+
+
